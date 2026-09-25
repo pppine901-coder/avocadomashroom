@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云南菌子之行</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap');
+        
+        body {
+            background-color: #f7f3e8;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            font-family: 'Noto Serif SC', serif;
+            color: #3e332a;
+        }
+        
+        .title-font { font-family: 'ZCOOL KuaiLe', cursive, 'Noto Serif SC', serif; }
+
+        .dashboard-card {
+            background: rgba(255, 253, 249, 0.95); border: 1px solid #e4d8c7; border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.08); backdrop-filter: blur(8px);
+        }
+
+        .glass-card {
+            background: #fffdf9; border: 1.5px solid #e8decb; border-radius: 16px;
+            box-shadow: 4px 6px 15px rgba(212, 185, 150, 0.2);
+            margin-bottom: 24px; position: relative; overflow: hidden;
+        }
+        
+        .stamp-badge {
+            display: inline-block; border: 2px solid #bd4c3d; color: #bd4c3d;
+            padding: 2px 8px; border-radius: 4px; font-weight: bold;
+            font-size: 0.75rem; transform: rotate(-3deg); opacity: 0.85; letter-spacing: 1px;
+        }
+
+        .timeline-dot {
+            width: 12px; height: 12px; border-radius: 50%; background-color: #d28c5a;
+            border: 2px solid #fffdf9; box-shadow: 0 0 0 2px #e5c3a6;
+        }
+        
+        .timeline-line {
+            position: absolute; left: 21px; top: 28px; bottom: -24px; width: 2px;
+            background: repeating-linear-gradient(to bottom, #d28c5a, #d28c5a 4px, transparent 4px, transparent 8px);
+            z-index: 0; opacity: 0.6;
+        }
+
+        .nav-btn {
+            background: #fdf6ec; color: #b46b35; border: 1px solid #f2e2ce;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem;
+            font-weight: 600; display: inline-flex; align-items: center;
+            gap: 4px; transition: all 0.2s; font-family: 'Noto Sans SC', sans-serif; text-decoration: none;
+            box-shadow: 0 2px 4px rgba(217,119,6,0.05);
+        }
+        .nav-btn:hover { background: #fef3c7; border-color: #fcd34d; }
+
+        .ticket-scroll-box {
+            max-width: 90%; max-height: 280px; overflow-y: auto; border: 2px dashed #d7c9b8;
+            border-radius: 10px; background: #f4ede1; position: relative; margin-top: 10px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .ticket-scroll-box::-webkit-scrollbar { width: 5px; }
+        .ticket-scroll-box::-webkit-scrollbar-thumb { background: #d28c5a; border-radius: 10px; }
+        .scroll-hint {
+            position: sticky; top: 4px; float: right; margin-right: 4px; background: rgba(62,51,42,0.75);
+            color: #fff; font-size: 0.65rem; padding: 4px 10px; border-radius: 12px;
+            z-index: 10; pointer-events: none; font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .img-gallery { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; align-items: flex-start; }
+        .ticket-img-mini {
+            width: 140px; height: auto; border-radius: 6px; border: 4px solid #fffdf9;
+            box-shadow: 0 4px 10px rgba(139,69,19,0.15); transform: rotate(-2deg);
+            transition: all 0.3s ease; object-fit: cover;
+        }
+        .ticket-img-mini:nth-child(even) { transform: rotate(2deg); }
+        .ticket-img-mini:hover { transform: scale(1.4) rotate(0); z-index: 20; position: relative; box-shadow: 0 8px 20px rgba(139,69,19,0.25); }
+
+        .info-guide {
+            background: #fbf5eb; border-radius: 12px; padding: 14px; margin-top: 16px;
+            border-left: 4px solid #d28c5a; font-family: 'Noto Sans SC', sans-serif; font-size: 0.8rem; color: #5c4a3d;
+        }
+
+        .daily-map {
+            width: 100%; height: 320px; border-top: 2px dashed #e8decb; 
+            margin-top: 16px; background: #fdf6ec; z-index: 1;
+        }
+        .map-legend {
+            display: flex; justify-content: center; gap: 12px; padding: 8px; background: #fffdf9;
+            border-bottom: 1px solid #e8decb; font-family: 'Noto Sans SC', sans-serif; font-size: 0.7rem; color: #5c4a3d;
+        }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .line-dash { width: 20px; height: 2px; }
+
+        .amap-marker-label { border: none; background: transparent; padding: 0; }
+        .custom-route-label {
+            background: rgba(255, 253, 249, 0.95); border: 1px solid #d7c9b8; border-radius: 4px;
+            padding: 2px 6px; font-size: 10px; color: #8b4513; font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); white-space: nowrap; pointer-events: none;
+        }
+        
+        .dist-badge {
+            display: inline-block; background: #fef3c7; color: #b45309; padding: 2px 6px; 
+            border-radius: 6px; font-size: 0.7rem; font-family: 'Noto Sans SC'; font-weight: normal; margin-left: 6px;
+            border: 1px solid #fde68a;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen pb-12">
+
+    <!-- 全新美化的顶部大图区域 -->
+    <header class="relative pt-24 pb-16 px-4 flex flex-col items-center justify-center text-center overflow-hidden mb-6 shadow-sm">
+        <!-- 森林/菌子氛围背景图 -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1511497584788-876760111969?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" alt="云南风光插画" class="w-full h-full object-cover opacity-90" />
+            <!-- 柔和的渐变遮罩，让图片向下过渡到纸张背景色 -->
+            <div class="absolute inset-0 bg-gradient-to-b from-[#f7f3e8]/30 via-[#f7f3e8]/70 to-[#f7f3e8]"></div>
+        </div>
+        
+        <div class="relative z-10 w-full max-w-2xl">
+            <h1 class="text-5xl font-bold mb-3 text-[#5c3a21] title-font flex items-center justify-center gap-2 drop-shadow-md">
+                🍄 云南菌子之行 🍄
+            </h1>
+            <p class="text-[#8b4513] font-bold tracking-[0.2em] text-sm mb-8 drop-shadow-sm opacity-90">KUNMING · LIJIANG · XISHUANGBANNA</p>
+            
+            <div class="dashboard-card w-full p-4 flex justify-between items-center text-center">
+                <div class="flex-1 border-r border-[#e4d8c7]/50">
+                    <div class="text-2xl font-bold text-[#8b4513]">6 <span class="text-xs font-normal">天</span></div>
+                    <div class="text-[10px] text-gray-500 mt-1">9.30 - 10.05</div>
+                </div>
+                <div class="flex-1 border-r border-[#e4d8c7]/50">
+                    <div class="text-2xl font-bold text-[#8b4513]">3 <span class="text-xs font-normal">城</span></div>
+                    <div class="text-[10px] text-gray-500 mt-1">昆明/丽江/版纳</div>
+                </div>
+                <div class="flex-1">
+                    <div class="text-2xl font-bold text-[#8b4513]">5 <span class="text-xs font-normal">站</span></div>
+                    <div class="text-[10px] text-gray-500 mt-1">核心打卡动线</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-2xl mx-auto px-4 mt-2">
+        <div class="map-legend rounded-t-xl">
+            <div class="legend-item"><div class="line-dash" style="background: #3b82f6;"></div> 乘车/打车</div>
+            <div class="legend-item"><div class="line-dash" style="background: repeating-linear-gradient(to right, #10b981, #10b981 4px, transparent 4px, transparent 8px);"></div> 步行</div>
+        </div>
+    </div>
+
+    <main class="max-w-2xl mx-auto px-4 relative z-20">
+        
+        <!-- Day 1 -->
+        <div class="glass-card !rounded-t-none">
+            <div class="p-5">
+                <div class="flex justify-between items-center border-b border-[#e8decb] pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-[#5c4a3d] flex items-center gap-2">
+                        <span class="stamp-badge">D1</span>春城初遇，野生吃菌
+                    </h2>
+                    <span class="text-sm text-[#a06d47]">9.30 周三</span>
+                </div>
+                
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="text-sm text-[#8b4513] font-bold mb-1"><i class="far fa-moon mr-1"></i> 凌晨 接机汇合</div>
+                    <div class="text-gray-600 text-sm">机场碰头后打车前往 <strong>昆明南站</strong> 附近的住处汇合，好好睡一觉补充体力。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 35km / 40分钟</span></div>
+                </div>
+
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-camera-retro mr-1"></i> 下午 斗南花市闲游</div>
+                        <a href="https://uri.amap.com/search?keyword=斗南花卉市场" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">前往亚洲最大的鲜花交易市场 <strong>斗南花市</strong>。这里不是观赏花海，而是超级震撼的鲜花批发集散地，可以买到白菜价的各种切花和干花。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 12km / 20分钟</span></div>
+                </div>
+
+                <div class="relative pl-7">
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="text-sm text-[#8b4513] font-bold mb-1"><i class="fas fa-fire mr-1"></i> 晚上 迎宾大餐</div>
+                    <div class="text-gray-600 text-sm">找一家地道的野生菌火锅，正式开启云南之行！</div>
+                </div>
+
+                <div class="info-guide">
+                    <div class="mb-3">
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-utensils"></i> 美食推荐</div>
+                        <div class="leading-relaxed">必吃：野生菌火锅。特色：正宗过桥米线、斗南鲜花饼。</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-lightbulb"></i> 游玩 Tips</div>
+                        <div class="leading-relaxed">吃野生菌必须等沙漏漏完才能动筷，千万别中途拿筷子尝汤底（小心见手青）！斗南花市下午主要是多肉和零售，晚间的主交易大厅最为热闹。</div>
+                    </div>
+                </div>
+            </div>
+            <div id="map-d1" class="daily-map"></div>
+        </div>
+
+        <!-- Day 2 -->
+        <div class="glass-card">
+            <div class="p-5">
+                <div class="flex justify-between items-center border-b border-[#e8decb] pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-[#5c4a3d] flex items-center gap-2">
+                        <span class="stamp-badge">D2</span>奔赴山海，雪山脚下
+                    </h2>
+                    <span class="text-sm text-[#a06d47]">10.1 周四</span>
+                </div>
+                
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="text-sm text-[#8b4513] font-bold mb-1"><i class="fas fa-train mr-1"></i> 12:25 - 16:15 高铁前往</div>
+                    <div class="text-gray-600 text-sm mb-2">乘坐 <strong>C450次列车</strong> 从昆明前往丽江站。</div>
+                    <div class="ticket-scroll-box">
+                        <div class="scroll-hint">↕ 上下滑动</div>
+                        <img src="IMG_0602..png" alt="昆明至丽江车票" style="width:100%; display:block;">
+                    </div>
+                </div>
+
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-home mr-1"></i> 下午 入住观景美宿</div>
+                        <a href="https://uri.amap.com/search?keyword=丽江画中里" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm mb-2">出站后乘车前往民宿入住。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 18km / 30分钟</span></div>
+                    <div class="img-gallery">
+                        <img src="IMG_0603..PNG" alt="画中里民宿订单" class="ticket-img-mini">
+                    </div>
+                </div>
+
+                <div class="relative pl-7">
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-moon mr-1"></i> 晚上 束河漫步</div>
+                        <a href="https://uri.amap.com/search?keyword=束河古镇" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">相比大研古城，束河古镇更加静谧悠闲。顺着青龙桥和四方街散散步，吃顿纳西晚餐。<span class="dist-badge"><i class="fas fa-walking mr-1"></i>约 500m / 10分钟</span></div>
+                </div>
+
+                <div class="info-guide">
+                    <div class="mb-3">
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-utensils"></i> 美食推荐</div>
+                        <div class="leading-relaxed">腊排骨火锅（汤汁泡饭绝佳）、纳西烤鱼、包浆豆腐、玫瑰冰粉。</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-lightbulb"></i> 游玩 Tips</div>
+                        <div class="leading-relaxed">束河内部多为凹凸不平的青石板路，务必穿舒适的平底鞋。丽江早晚温差极大，出门哪怕有太阳也要带件外套。</div>
+                    </div>
+                </div>
+            </div>
+            <div id="map-d2" class="daily-map"></div>
+        </div>
+
+        <!-- Day 3 -->
+        <div class="glass-card">
+            <div class="p-5">
+                <div class="flex justify-between items-center border-b border-[#e8decb] pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-[#5c4a3d] flex items-center gap-2">
+                        <span class="stamp-badge">D3</span>挑战极高，冰川寻蓝
+                    </h2>
+                    <span class="text-sm text-[#a06d47]">10.2 周五</span>
+                </div>
+                
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="far fa-clock mr-1"></i> 07:15 游客中心集合</div>
+                        <a href="https://uri.amap.com/search?keyword=玉龙雪山游客中心" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">乘车前往新游客中心，换乘观光火车，8:00 准时检票。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 22km / 40分钟</span></div>
+                </div>
+
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-tree mr-1"></i> 上午 云杉坪 & 蓝月谷</div>
+                        <a href="https://uri.amap.com/search?keyword=蓝月谷" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">搭乘小索道前往云杉坪（高山草甸），随后换乘大巴游览水质如蓝宝石般的 <strong>蓝月谷</strong>（白水河）。</div>
+                </div>
+
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="text-sm text-[#8b4513] font-bold mb-1"><i class="fas fa-mountain mr-1"></i> 12:00 冲刺 4680</div>
+                    <div class="text-gray-600 text-sm">乘大索道直达 <strong>冰川公园</strong>（海拔4506m），顺着栈道向 4680 米顶峰石碑挑战！体力消耗大，注意高反。</div>
+                </div>
+
+                <div class="relative pl-7">
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="text-sm text-[#8b4513] font-bold mb-1"><i class="fas fa-subway mr-1"></i> 16:30 回程修整</div>
+                    <div class="text-gray-600 text-sm">乘火车下山，回古镇吃顿热乎的大餐补补身子。</div>
+                </div>
+
+                <div class="info-guide">
+                    <div class="mb-3">
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-utensils"></i> 能量补给</div>
+                        <div class="leading-relaxed">山上午餐贵且拥挤，建议自带巧克力、小面包等高热量零食。下山直奔市区吃**黑山羊火锅**，驱寒解乏一绝。</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-lightbulb"></i> 雪山保命 Tips</div>
+                        <div class="leading-relaxed">氧气瓶提前在古城药店买。在4600米高海拔区域，走路必须像树懒一样慢！雪地反光刺眼，**必须带墨镜**防雪盲，冲锋衣防妖风。</div>
+                    </div>
+                </div>
+            </div>
+            <div id="map-d3" class="daily-map"></div>
+        </div>
+
+        <!-- Day 4 -->
+        <div class="glass-card">
+            <div class="p-5">
+                <div class="flex justify-between items-center border-b border-[#e8decb] pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-[#5c4a3d] flex items-center gap-2">
+                        <span class="stamp-badge">D4</span>转场雨林，傣家风情
+                    </h2>
+                    <span class="text-sm text-[#a06d47]">10.3 周六</span>
+                </div>
+                
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-plane mr-1"></i> 11:00 飞往版纳</div>
+                        <a href="https://uri.amap.com/search?keyword=丽江三义机场" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm mb-2">睡到自然醒去机场。✈️ <strong>青岛航空 QW6135</strong> (11:00-12:10)</div>
+                    <div class="img-gallery">
+                        <img src="IMG_0605..png" alt="机票信息" class="ticket-img-mini">
+                    </div>
+                </div>
+
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-bed mr-1"></i> 中午 抵达入住</div>
+                        <a href="https://uri.amap.com/search?keyword=何璞慕白度假酒店(告庄店)" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm mb-2">接机乘车前往告庄西双景办理入住。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 9km / 20分钟</span></div>
+                    <div class="img-gallery">
+                        <img src="IMG_0604..png" alt="酒店信息" class="ticket-img-mini">
+                    </div>
+                </div>
+
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-camera-retro mr-1"></i> 下午 曼听公园</div>
+                        <a href="https://uri.amap.com/search?keyword=曼听公园" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">打车前往曼听公园。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 6km / 15分钟</span><br>这里曾是傣王的御花园（春欢），拥有极具异域风情的白塔、洗心明镜，隔壁就是金碧辉煌的总佛寺。极度适合拍傣服写真。</div>
+                </div>
+
+                <div class="relative pl-7">
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-star mr-1"></i> 晚上 星光夜市</div>
+                        <a href="https://uri.amap.com/search?keyword=星光夜市" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">酒店下楼即达，逛全亚洲最大、最具东南亚风情的夜市，开启吃货模式。</div>
+                </div>
+
+                <div class="info-guide">
+                    <div class="mb-3">
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-utensils"></i> 星光夜市狂吃</div>
+                        <div class="leading-relaxed">正餐：傣味手抓饭/孔雀宴、香茅草烤鱼。小吃：提着塑料袋喝的**老挝冰咖啡**、清凉泡鲁达、柠檬舂鸡脚（极度酸辣上头）。</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-lightbulb"></i> 游玩 Tips</div>
+                        <div class="leading-relaxed">版纳雨林气候蚊虫极毒，特别是曼听公园的水边，随身携带强力驱蚊液。告庄里旅拍店多如牛毛，建议多看客照比价再定。</div>
+                    </div>
+                </div>
+            </div>
+            <div id="map-d4" class="daily-map"></div>
+        </div>
+
+        <!-- Day 5 -->
+        <div class="glass-card">
+            <div class="p-5">
+                <div class="flex justify-between items-center border-b border-[#e8decb] pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-[#5c4a3d] flex items-center gap-2">
+                        <span class="stamp-badge">D5</span>绿野仙踪，六国水系
+                    </h2>
+                    <span class="text-sm text-[#a06d47]">10.4 周日</span>
+                </div>
+                
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-leaf mr-1"></i> 08:20 探秘植物园</div>
+                        <a href="https://uri.amap.com/search?keyword=西双版纳热带植物园" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm mb-2">在告庄乘大巴前往中科院植物园，这里是国内面积最大、物种最丰富的植物园。13:00 乘车返回告庄。<span class="dist-badge"><i class="fas fa-bus mr-1"></i>单程 60km / 1小时</span></div>
+                    <div class="img-gallery">
+                        <img src="IMG_0606..png" alt="去程大巴" class="ticket-img-mini">
+                        <img src="IMG_0607..png" alt="回程大巴" class="ticket-img-mini">
+                    </div>
+                </div>
+
+                <div class="relative pl-7">
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-mug-hot mr-1"></i> 下午 湄公河畔放松</div>
+                        <a href="https://uri.amap.com/search?keyword=六国水上市场" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">植物园很耗体力，回告庄后去江边喝杯咖啡发呆。傍晚在 <strong>六国水上市场</strong> 坐乌篷船体验“湄公河之夜”。</div>
+                </div>
+
+                <div class="info-guide">
+                    <div class="mb-3">
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-utensils"></i> 美食推荐</div>
+                        <div class="leading-relaxed">中午在植物园周边农家乐吃菠萝紫米饭、炒芭蕉花；晚上在江边吹风吃傣味烧烤。</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-lightbulb"></i> 游玩 Tips</div>
+                        <div class="leading-relaxed">中科院植物园分东西区，常规只逛西区（有巨大王莲、热气球和百花园），东区为原始雨林需徒步。园区遮阴少，记得带遮阳伞防中暑。</div>
+                    </div>
+                </div>
+            </div>
+            <div id="map-d5" class="daily-map"></div>
+        </div>
+
+        <!-- Day 6 -->
+        <div class="glass-card">
+            <div class="p-5">
+                <div class="flex justify-between items-center border-b border-[#e8decb] pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-[#5c4a3d] flex items-center gap-2">
+                        <span class="stamp-badge">D6</span>满载而归，春城欢唱
+                    </h2>
+                    <span class="text-sm text-[#a06d47]">10.5 周一</span>
+                </div>
+                
+                <div class="relative pl-7 pb-5">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-train mr-1"></i> 08:46 返回昆明</div>
+                        <a href="https://uri.amap.com/search?keyword=西双版纳站" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm mb-2">打车去版纳站。<span class="dist-badge"><i class="fas fa-car mr-1"></i>约 8km / 20分钟</span> 随后乘坐 <strong>C262次列车</strong> (08:46-12:29) 返回昆明站。</div>
+                    <div class="ticket-scroll-box">
+                        <div class="scroll-hint">↕ 上下滑动看第二张</div>
+                        <img src="IMG_0602..png" alt="返程车票截图" style="width:100%; display:block;">
+                    </div>
+                </div>
+
+                <div class="relative pl-7">
+                    <div class="timeline-dot absolute left-3 top-1.5 -ml-1.5"></div>
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-sm text-[#8b4513] font-bold"><i class="fas fa-microphone-alt mr-1"></i> 下午 纯K嗨唱</div>
+                        <a href="https://uri.amap.com/search?keyword=昆明纯K" target="_blank" class="nav-btn"><i class="fas fa-location-arrow"></i> 导航</a>
+                    </div>
+                    <div class="text-gray-600 text-sm">从热带雨林回到现代城市，直奔纯K唱歌放松，聚餐后回住处完美收官！</div>
+                </div>
+
+                <div class="info-guide">
+                    <div class="mb-3">
+                        <div class="font-bold text-[#8b4513] mb-1"><i class="fas fa-utensils"></i> 纯K & 夜宵</div>
+                        <div class="leading-relaxed">纯K必点：台湾卤肉饭、珍珠奶茶。夜宵推荐买点建水烤豆腐或昭通小肉串。</div>
+                    </div>
+                </div>
+            </div>
+            <div id="map-d6" class="daily-map"></div>
+        </div>
+
+    </main>
+    
+    <footer class="text-center text-[#a06d47] text-sm mt-8 pb-10 font-serif opacity-80">
+        <p>— 愿旅途充满欢笑与美好回忆 —</p>
+    </footer>
+
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: '07c8f7fba4b561fe2ba3c55f6a170cb8',
+        };
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=a2e4c6b4f8f83b930a3a2420bb27702f"></script>
+
+    <script>
+        const styles = {
+            drive: { color: '#3b82f6', dash: [] },        
+            walk: { color: '#10b981', dash: [5, 5] },     
+        };
+
+        const dailyData = {
+            'map-d1': {
+                points: [
+                    { coord: [102.833, 24.863], name: '昆明南站' },
+                    { coord: [102.743, 24.893], name: '斗南花市' },
+                    { coord: [102.714, 25.042], name: '野生菌火锅' }
+                ],
+                routes: [
+                    { from: 0, to: 1, mode: 'drive', info: '打车 约20分' },
+                    { from: 1, to: 2, mode: 'drive', info: '打车 约30分' }
+                ]
+            },
+            'map-d2': {
+                points: [
+                    { coord: [100.253, 26.827], name: '丽江站' },
+                    { coord: [100.204, 26.923], name: '画中里' },
+                    { coord: [100.208, 26.918], name: '束河古镇' }
+                ],
+                routes: [
+                    { from: 0, to: 1, mode: 'drive', info: '打车 约30分钟' },
+                    { from: 1, to: 2, mode: 'walk', info: '步行 10分钟' }
+                ]
+            },
+            'map-d3': {
+                points: [
+                    { coord: [100.204, 26.923], name: '画中里' },
+                    { coord: [100.231, 27.051], name: '游客中心' },
+                    { coord: [100.198, 27.112], name: '云杉坪/蓝月谷' },
+                    { coord: [100.191, 27.098], name: '冰川公园' }
+                ],
+                routes: [
+                    { from: 0, to: 1, mode: 'drive', info: '打车 约40分' },
+                    { from: 1, to: 2, mode: 'drive', info: '大巴' },
+                    { from: 2, to: 3, mode: 'drive', info: '索道' }
+                ]
+            },
+            'map-d4': {
+                points: [
+                    { coord: [100.763, 21.972], name: '嘎洒机场' },
+                    { coord: [100.812, 22.011], name: '告庄酒店' },
+                    { coord: [100.803, 21.991], name: '曼听公园' },
+                    { coord: [100.817, 22.014], name: '星光夜市' }
+                ],
+                routes: [
+                    { from: 0, to: 1, mode: 'drive', info: '打车 约20分' },
+                    { from: 1, to: 2, mode: 'drive', info: '打车 约15分' },
+                    { from: 2, to: 3, mode: 'drive', info: '打车 约15分' }
+                ]
+            },
+            'map-d5': {
+                points: [
+                    { coord: [100.812, 22.011], name: '告庄' },
+                    { coord: [101.252, 21.921], name: '热带植物园' },
+                    { coord: [100.816, 22.010], name: '水上市场' }
+                ],
+                routes: [
+                    { from: 0, to: 1, mode: 'drive', info: '大巴 约1小时' },
+                    { from: 1, to: 2, mode: 'drive', info: '大巴 约1小时' }
+                ]
+            },
+            'map-d6': {
+                points: [
+                    { coord: [102.721, 25.013], name: '昆明站' },
+                    { coord: [102.715, 25.045], name: '纯K嗨唱' }
+                ],
+                routes: [
+                    { from: 0, to: 1, mode: 'drive', info: '打车 约15分' }
+                ]
+            }
+        };
+
+        function renderAmap() {
+            Object.keys(dailyData).forEach(mapId => {
+                const data = dailyData[mapId];
+                
+                const map = new AMap.Map(mapId, {
+                    zoom: 10,
+                    mapStyle: 'amap://styles/macaron',
+                    dragEnable: true, 
+                    zoomEnable: true,
+                    scrollWheel: false 
+                });
+
+                AMap.plugin(['AMap.ToolBar'], function() {
+                    map.addControl(new AMap.ToolBar({
+                        position: 'RT' 
+                    }));
+                });
+
+                data.routes.forEach(route => {
+                    const p1 = data.points[route.from].coord;
+                    const p2 = data.points[route.to].coord;
+                    const style = styles[route.mode];
+
+                    new AMap.Polyline({
+                        map: map, path: [p1, p2],
+                        strokeColor: style.color, strokeStyle: style.dash.length ? 'dashed' : 'solid',
+                        strokeDasharray: style.dash, strokeWeight: 3, lineJoin: 'round'
+                    });
+
+                    const midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+                    new AMap.Text({
+                        map: map, text: route.info, position: midPoint,
+                        offset: new AMap.Pixel(0, -10), anchor: 'bottom-center',
+                        className: 'custom-route-label'
+                    });
+                });
+
+                data.points.forEach((point, index) => {
+                    const content = `<div style="background:#fffdf9; border:1px solid #d28c5a; color:#8b4513; padding:2px 6px; border-radius:12px; font-size:11px; font-weight:bold; white-space:nowrap; box-shadow: 0 2px 4px rgba(139,69,19,0.1);">
+                                        <span style="background:#d28c5a; color:#fff; border-radius:50%; width:14px; height:14px; display:inline-block; text-align:center; line-height:14px; margin-right:3px;">${index+1}</span>${point.name}
+                                     </div>`;
+                    new AMap.Marker({
+                        map: map, position: point.coord, content: content,
+                        offset: new AMap.Pixel(-30, -10)
+                    });
+                });
+
+                map.setFitView();
+            });
+        }
+
+        window.onload = function() {
+            setTimeout(() => {
+                if(typeof AMap !== 'undefined') {
+                    renderAmap();
+                } else {
+                    console.error("高德地图加载失败，请检查 API Key 和网络配置。");
+                }
+            }, 500);
+        };
+    </script>
+</body>
+</html>
